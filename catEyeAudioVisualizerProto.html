@@ -1,0 +1,97 @@
+<html>
+<head>
+	<!--
+		A canvas example from:
+		https://developer.apple.com/library/safari/documentation/AudioVideo/Conceptual/HTML-canvas-guide/DrawingLinesandShapes/DrawingLinesandShapes.html
+		Their coding style is different from what we'll be using in class - use our style, not theirs.
+	-->
+    <title>Simple curve example</title>
+    <style>
+		canvas{
+			background: #ffffff;
+			cursor: pointer;
+			margin-left: 10px;
+			margin-top: 10px;
+			box-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+		}
+ 	</style>
+    <script type="text/javascript">
+        var canvas, ctx, ctrlXa,ctrlX,ctrlYa,ctrlY,vector = {},speed = 1.0;
+
+        var img = new Image();
+	function init() {
+		canvas = document.querySelector("canvas");
+		ctx = canvas.getContext("2d");
+        ctrlXa = 512;
+        ctrlYa = 252;
+        ctrlX = 429;
+        ctrlY = 78;
+		drawCurves();
+        vector.x = 83 / Math.sqrt(83*83 + 174*174);
+        vector.y = 174 / Math.sqrt(83*83 + 174*174);
+        loop();
+
+	}
+    img.src = 'myBrand.jpg';
+   function drawCurves() {
+       ctx.clearRect(0,0,canvas.width, canvas.height);
+    ctx.drawImage(img,-100,0);
+   	ctx.lineWidth="3";
+
+    ctx.beginPath();
+    ctx.moveTo(381, 181);
+    ctx.quadraticCurveTo(ctrlXa,ctrlYa, 563, 118);//bottom eyelid does not move
+    ctx.strokeStyle = "black";
+    ctx.quadraticCurveTo(ctrlX,ctrlY,381,181); //top eyelid moves
+    ctx.fillStyle = 'black';
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.moveTo(381, 181);
+    ctx.quadraticCurveTo(ctrlXa,ctrlYa, 563, 118);//bottom eyelid does not move
+    ctx.strokeStyle = "black";
+    ctx.quadraticCurveTo(ctrlX,ctrlY,381,181); //top eyelid moves
+    ctx.fillStyle = 'black';
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    
+    //ctx.strokeStyle = "yellow";
+   // ctx.beginPath();
+    //ctx.moveTo(0, 0);
+    //ctx.bezierCurveTo(ctrlX, ctrlY, ctrlXa, ctrlYa, canvas.width, canvas.height);
+    //ctx.stroke();
+    }
+    function loop(){
+        requestAnimationFrame(loop);
+
+        //move top eyelid control point crtlXa and crtlYa
+        var controlX = ctrlX;
+        var controlY = ctrlY;
+        controlX += speed * vector.x;
+        controlY += speed * vector.y; 
+        if(controlX >= ctrlXa){
+            vector.x *= -1;
+            vector.y *= -1;
+            controlX += speed * vector.x
+			controlY += speed * vector.y;
+        }
+        else if(controlX <= 429.0){
+                        vector.x *= -1;
+            vector.y *= -1;
+            controlX += speed * vector.x
+			controlY += speed * vector.y;
+        }
+        ctrlX = controlX;
+        ctrlY = controlY;
+
+        drawCurves();        
+    }
+
+    </script>
+</head>
+<body onload="init()" style="background-color:#e0e0e0">
+    <canvas height="400" width="600">
+    </canvas>
+</body>
+</html>
