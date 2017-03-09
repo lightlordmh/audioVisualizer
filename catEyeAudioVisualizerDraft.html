@@ -33,9 +33,9 @@
 		var leftpupilctrlx1;
 		var leftpupilctrly;
 		var leftpupilctrlx2;
-        var eyeLidsOpen = false;
-        var eyelidsMoveRight = true;
-        var eyelidsMoveLeft = true;
+        var eyeLidsOpen;
+        var eyelidsMoveRight;
+        var eyelidsMoveLeft;
         var ctrlXa,ctrlX,ctrlYa,ctrlY,vector = {}, vectorA = {},speed = 1.0, midPoint1 = {};
         var ctrlX2a,ctrlX2,ctrlY2a,ctrlY2,vector2 = {}, midPoint2 = {},vector2A = {};
 		
@@ -59,6 +59,9 @@
 			// start animation loop
 			ctx.clearRect(0,0,canvas.width, canvas.height);
 			ctx.lineWidth="3";
+			eyeLidsOpen = true;
+			eyelidsMoveLeft = true;
+			eyelidsMoveRight = true;
 			leftpupilxtop = 132;
 			leftpupilytop = 125;
 			leftpupilxbot = 134;
@@ -138,22 +141,22 @@
             audioElement.onplay = function(){
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
+				console.log("onplay");
             };
             audioElement.onplaying = function(){
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
+				console.log("onplaying");
             };
             audioElement.onpause = function(){
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
-            };
-            audioElement.onplaying = function(){
-                eyelidsMoveRight = true;
-                eyelidsMoveLeft = true;
+				console.log("onpause");
             };
             audioElement.onended = function(){
                 eyelidsMoveRight = true;
-                eyelidsMoveLeft = true;                
+                eyelidsMoveLeft = true; 
+				console.log("onended");
             }
 
 
