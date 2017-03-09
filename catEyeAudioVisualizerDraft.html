@@ -200,19 +200,19 @@
 			for(var i=0; i<data.length; i++) { 
 				ctx.fillStyle = 'blue';
 				ctx.beginPath();
-				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.85, barWidth, 0,2*Math.PI);
+				ctx.ellipse(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.85, 5, 5, 45 * Math.PI/180, 0, 2 * Math.PI);
 				ctx.closePath();
 				ctx.stroke();
 				ctx.fill();
 				ctx.fillStyle = 'red';
 				ctx.beginPath();
-				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.8, barWidth, 0,2*Math.PI);
+				ctx.ellipse(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.8, 5, 5, 45 * Math.PI/180, 0, 2 * Math.PI);
 				ctx.closePath();
 				ctx.stroke();
 				ctx.fill();
 				ctx.fillStyle = 'purple';
 				ctx.beginPath();
-				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.9, barWidth, 0,2*Math.PI);
+				ctx.ellipse(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.9, 5, 5, 45 * Math.PI/180, 0, 2 * Math.PI);
 				ctx.closePath();
 				ctx.stroke();
 				ctx.fill();
