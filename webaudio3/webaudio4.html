@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Web Audio Visualizer</title>
+	<style>
+	body {
+         background: #000000;
+         font-family: tahoma, verdana, sans serif;
+      }
+
+      canvas {
+		padding-left: 0;
+		padding-right: 0;
+		margin-left: auto;
+		margin-right: auto;
+		display: block;
+        margin-top:100px;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+        background: black;
+    }
+      
+    #controls{
+		width: 93%;
+		position: absolute;
+		margin-top: 50px;
+		margin-left: auto;
+		margin-right: auto;	
+    }
+	label {
+		color: white;
+	}
+	.notused{
+		display: none;
+	}
+	h1 {
+		margin-left: auto;
+		margin-right: auto;
+		margin-top: 100px;
+		color: white;
+		text-align: center;
+		font-size: 300%;
+	}
+	.centerelement{
+		width: 200px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	#track{
+		padding-left: 100px;
+	}
+	#fs{
+		padding-left: 210px;
+	}
+	</style>
+	<script>
+	// An IIFE ("Iffy") - see the notes in mycourses
+	(function(){
+		"use strict";
+		
+		var NUM_SAMPLES = 256;
+		var SOUND_1 = 'media/music.mp3';
+		var SOUND_2 = 'media/music2.mp3';
+		var SOUND_3 = 'media/music3.mp3';
+		var audioElement;
+		var analyserNode;
+		var canvas,ctx;
+		var maxRadius = 100;
+		var invert = false;
+		var tintRed = false;
+		var noise = false;
+		var lines = false;
+		var opaque = 1;
+		var delayAmount;
+		var delayNode;
+		var img = new Image();
+		img.src = 'myBrand.png';
+		var leftpupilxtop;
+		var leftpupilytop;
+		var leftpupilxbot;
+		var leftpupilybot;
+		var leftpupilctrlx1;
+		var leftpupilctrly;
+		var leftpupilctrlx2;
+		
+		function init(){
+			// set up canvas stuff
+			canvas = document.querySelector('canvas');
+			ctx = canvas.getContext("2d");
+			delayAmount = 0;
+			
+			// get reference to <audio> element on page
+			audioElement = document.querySelector('audio');
+			audioElement.crossOrigin = "anonymous";
+			// call our helper function and get an analyser node
+			analyserNode = createWebAudioContextWithAnalyserNode(audioElement);
+			// get sound track <select> and Full Screen button working
+			setupUI();
+			
+			// load and play default sound into audio element
+			playStream(audioElement,SOUND_1);
+			
+			// start animation loop
+			ctx.clearRect(0,0,canvas.width, canvas.height);
+			ctx.lineWidth="3";
+			leftpupilxtop = 132;
+			leftpupilytop = 125;
+			leftpupilxbot = 134;
+			leftpupilybot = 185;
+			leftpupilctrlx1 = 120;
+			leftpupilctrly = 155;
+			leftpupilctrlx2 = 150;
+			ctx.lineWidth = 15;
+			update();
+		}
+		
+		
+		function createWebAudioContextWithAnalyserNode(audioElement) {
+			var audioCtx, analyserNode, sourceNode;
+			// create new AudioContext
+			// The || is because WebAudio has not been standardized across browsers yet
+			// http://webaudio.github.io/web-audio-api/#the-audiocontext-interface
+			audioCtx = new (window.AudioContext || window.webkitAudioContext);
+			
+			// create an analyser node
+			analyserNode = audioCtx.createAnalyser();
+			//create DelayNode instance
+			delayNode = audioCtx.createDelay();
+			delayNode.delayTime.value = delayAmount;
+			/*
+			We will request NUM_SAMPLES number of samples or "bins" spaced equally 
+			across the sound spectrum.
+			
+			If NUM_SAMPLES (fftSize) is 256, then the first bin is 0 Hz, the second is 172 Hz, 
+			the third is 344Hz. Each bin contains a number between 0-255 representing 
+			the amplitude of that frequency.
+			*/ 
+			
+			// fft stands for Fast Fourier Transform
+			analyserNode.fftSize = NUM_SAMPLES;
+			
+			// this is where we hook up the <audio> element to the analyserNode
+			sourceNode = audioCtx.createMediaElementSource(audioElement); 
+			sourceNode.connect(audioCtx.destination);
+			sourceNode.connect(delayNode);
+			delayNode.connect(analyserNode);
+			analyserNode.connect(audioCtx.destination);
+			
+			// here we connect to the destination i.e. speakers
+			analyserNode.connect(audioCtx.destination);
+			return analyserNode;
+		}
+		
+		function setupUI(){
+			document.querySelector("#trackSelect").onchange = function(e){
+				playStream(audioElement,e.target.value);
+			};
+			
+			document.querySelector("#fsButton").onclick = function(){
+				requestFullscreen(canvas);
+			};
+			document.querySelector("#slider1").onchange = function(e){
+			 	console.log("value=" + e.target.value);
+			 	document.querySelector("#sliderResults").innerHTML = e.target.value;
+				maxRadius = e.target.value;
+			 };
+			 document.querySelector("#slider2").onchange = function(e){
+			 	console.log("value=" + e.target.value);
+			 	document.querySelector("#slider2Results").innerHTML = e.target.value;
+				opaque = e.target.value;
+			 };
+			 document.querySelector("#delaySlider").onchange = function(e){
+			 	console.log("value=" + e.target.value);
+			 	document.querySelector("#delaysliderResults").innerHTML = e.target.value;
+				delayAmount = e.target.value;
+			 };
+			 document.getElementById('redBox').onchange = function(e){
+				console.log("checked=" + e.target.checked);
+				tintRed = e.target.checked;
+				var msg = "";
+				if( e.target.checked){
+				 	msg = "checked";
+					tintRed = true;
+				}
+				else{
+					tintRed = false;
+				}
+				//document.querySelector("#checkboxResults").innerHTML = msg;
+			};
+			document.getElementById('invertBox').onchange = function(e){
+				console.log("checked=" + e.target.checked);
+				invert = e.target.checked;
+				var msg = "";
+				if( e.target.checked){
+				 	msg = "checked";
+					invert = true;
+				}
+				else{
+					invert = false;
+				}
+				//document.querySelector("#checkboxResults").innerHTML = msg;
+			};
+			document.getElementById('noiseBox').onchange = function(e){
+				console.log("checked=" + e.target.checked);
+				noise = e.target.checked;
+				var msg = "";
+				if( e.target.checked){
+				 	msg = "checked";
+					noise = true;
+				}
+				else{
+					noise = false;
+				}
+				//document.querySelector("#checkboxResults").innerHTML = msg;
+			};			
+			document.getElementById('lineBox').onchange = function(e){
+				console.log("checked=" + e.target.checked);
+				lines = e.target.checked;
+				var msg = "";
+				if( e.target.checked){
+				 	msg = "checked";
+					lines = true;
+				}
+				else{
+					lines = false;
+				}
+				//document.querySelector("#checkboxResults").innerHTML = msg;
+			};					
+		}
+		
+		function playStream(audioElement,path){
+			audioElement.src = path;
+			audioElement.play();
+			audioElement.volume = 0.2;
+			document.querySelector('#status').innerHTML = "Now playing: " + path;
+		}
+		
+		function update() { 
+			// this schedules a call to the update() method in 1/60 seconds
+			requestAnimationFrame(update);
+			
+			/*
+				Nyquist Theorem
+				http://whatis.techtarget.com/definition/Nyquist-Theorem
+				The array of data we get back is 1/2 the size of the sample rate 
+			*/
+			
+			// create a new array of 8-bit integers (0-255)
+			var data = new Uint8Array(NUM_SAMPLES/2); 
+			
+			// populate the array with the frequency data
+			// notice these arrays can be passed "by reference" 
+			//analyserNode.getByteFrequencyData(data);
+		
+			// OR
+			analyserNode.getByteTimeDomainData(data); // waveform data
+			//ctx.clearRect(0, 0, canvas.width, canvas.height);
+			var barWidth = 4;
+			var barSpacing = 1;
+			var barHeight = 100;
+			var topSpacing = 50;
+			ctx.save();
+			ctx.lineWidth = 3;
+			for(var i=0; i<data.length; i++) { 
+				ctx.fillStyle = 'blue';
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.85, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+				ctx.fillStyle = 'red';
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.8, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+				ctx.fillStyle = 'purple';
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*0.9, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+			}
+			ctx.restore();
+			ctx.drawImage(img,-100,0);
+			drawPupil();
+			leftpupilctrlx1 = data[50];
+			leftpupilctrlx2 = data[50];
+			//console.log(data[5]);
+			
+			// DRAW!
+			//ctx.clearRect(0,0,800,600);  
+			// loop through the data and draw!
+			/*for(var i=0; i<data.length; i++) { 
+				ctx.fillStyle = 'rgba(0,255,0,0.6)'; 
+				
+				// the higher the amplitude of the sample (bin) the taller the bar
+				// remember we have to draw our bars left-to-right and top-down
+				//ctx.fillRect(i * (barWidth + barSpacing),topSpacing + 256-data[i],barWidth,barHeight); 
+				//ctx.fillRect(640 - i * (barWidth + barSpacing),topSpacing + 256-data[i] -20,barWidth,barHeight);
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*1.1, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+				ctx.strokeStyle = 'grey';
+				ctx.fillStyle = 'red';
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])/3, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+				ctx.strokeStyle = 'grey';
+				ctx.fillStyle = 'purple';
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*1.8, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+				ctx.strokeStyle = 'grey';
+				ctx.fillStyle = 'yellow';
+				ctx.beginPath();
+				ctx.arc(i*(barWidth + barSpacing), (topSpacing + 256-data[i])*1.47, barWidth, 0,2*Math.PI);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();*/
+				/*
+				
+				// red-ish circles
+				var percent = data[i] / 255;
+				var circleRadius = percent * maxRadius;
+				ctx.beginPath();
+				ctx.fillStyle= makeColor(255, 111, 111, .34 - percent/3.0);
+				ctx.arc(canvas.width/2, canvas.height/2, circleRadius , 0, 2 * Math.PI, false);
+				ctx.fill();
+				ctx.closePath();
+				// blue-ish circles, bigger, more transparent
+				ctx.beginPath();
+				ctx.fillStyle= makeColor(0, 0, 255, .10 - percent/10.0 );
+				ctx.arc(canvas.width/2, canvas.height/2, circleRadius * 1.5, 0, 2 * Math.PI, false);
+				ctx.fill();
+				ctx.closePath();
+				// yellow-ish circles, smaller
+				ctx.save();
+				ctx.beginPath();
+				ctx.fillStyle = makeColor(200, 200, 0, .5 - percent/5.0);
+				ctx.arc(canvas.width/2, canvas.height/2, circleRadius * .50, 0, 2 * Math.PI, false);
+				ctx.fill();
+				ctx.closePath();
+				ctx.restore();
+			}
+			manipulatePixels();
+			delayNode.delayTime.value = delayAmount;*/
+		} 
+		
+		// HELPER
+		function makeColor(red, green, blue, alpha){
+   			var color='rgba('+red+','+green+','+blue+', '+alpha+')';
+   			return color;
+		}
+		
+		/*function manipulatePixels(){
+			// i) Get all of the rgba pixel data of the canvas by grabbing the 
+			// ImageData Object
+			// https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+			var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			// ii) imageData.data is an 8-bit typed array - values range from 0-255
+			// imageData.data contains 4 values per pixel: 4 x canvas.width x 
+			// canvas.height = 1024000 values!
+			// we’re looping through this 60 FPS - wow!
+			var data = imageData.data;
+			var length = data.length;
+			var width = imageData.width;
+			// iii) Iterate through each pixel
+			// we step by 4 so that we can manipulate 1 pixel per iteration
+			// data[i] is the red value
+			// data[i+1] is the green value
+			// data[i+2] is the blue value
+			// data[i+3] is the alpha value
+			for (var i = 0; i < length; i += 4){
+			// iv) increase red value only
+				if(tintRed){
+					// just the red channel this time
+					data[i] = data[i] + 100;
+				}
+				if(invert){
+					var red = data[i], green = data[i+1], blue = data[i+2];
+					data[i] = 255 - red; // set red value
+					data[i+1] = 255 - green; // set blue value
+					data[i+2] = 255 - blue;	// set green value
+					// data[i+3] is the alpha but we’re leaving that alone
+				}
+				// vi) noise
+				if (noise && Math.random() < .10){
+					data[i] = data[i +1] = data[i+2] = 128; // gray noise
+					//data[i] = data[i +1] = data[i+2] = 255; // or white noise
+					//data[i] = data[i +1] = data[i+2] = 0; // or black noise
+				}
+				//To see noise even on the black areas we haven’t drawn to, add this:
+				data[i+3] = 255; // alpha
+				// vii) draw 2-pixel lines every 50 rows
+				if (lines){
+					var row = Math.floor(i/4/width);
+					if (row % 50 == 0){
+						// this row
+						data[i] = data[i +1] = data[i+2] = data[i+3] = 255;
+						// next row
+						data[i+ (width*4)] = 
+						data[i +(width*4) + 1] = 
+						data[i + (width*4) +2] =
+						data[i + (width*4) +3] = 255;
+					}
+				}
+				data[i+3] *= opaque;
+			}
+			// put the modified data back on the canvas
+			ctx.putImageData(imageData, 0, 0);
+		}*/
+		
+		 // FULL SCREEN MODE
+		function requestFullscreen(element) {
+			if (element.requestFullscreen) {
+			  element.requestFullscreen();
+			} else if (element.mozRequestFullscreen) {
+			  element.mozRequestFullscreen();
+			} else if (element.mozRequestFullScreen) { // camel-cased 'S' was changed to 's' in spec
+			  element.mozRequestFullScreen();
+			} else if (element.webkitRequestFullscreen) {
+			  element.webkitRequestFullscreen();
+			}
+			// .. and do nothing if the method is not supported
+		};
+		
+		function drawPupil(){
+			//left pupil
+			ctx.beginPath();
+			ctx.moveTo(leftpupilxtop, leftpupilytop);
+			ctx.quadraticCurveTo(leftpupilctrlx1, leftpupilctrly, leftpupilxbot, leftpupilybot);//bottom eyelid does not move
+			ctx.strokeStyle = "black";
+			ctx.quadraticCurveTo(leftpupilctrlx2, leftpupilctrly, leftpupilxtop,leftpupilytop); //top eyelid moves
+			ctx.fillStyle = 'black'; 
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+			//right pupil
+			ctx.beginPath();
+			ctx.moveTo(canvas.width-leftpupilxtop, leftpupilytop);
+			ctx.quadraticCurveTo(canvas.width-leftpupilctrlx1, leftpupilctrly, canvas.width-leftpupilxbot, leftpupilybot);//bottom eyelid does not move
+			ctx.strokeStyle = "black";
+			ctx.quadraticCurveTo(canvas.width-leftpupilctrlx2,leftpupilctrly,canvas.width-leftpupilxtop, leftpupilytop); //top eyelid moves
+			ctx.fillStyle = 'black';
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+		}	
+		
+		window.addEventListener("load",init);
+	}());
+		
+	</script>
+</head>
+<body>
+	<h1>Cat's Eye Audio Visualizer</h1>
+	<canvas id="canvas" height="400" width="600"></canvas>
+	<div id="controls">
+		<div class="centerelement">
+		<audio controls loop ></audio>
+		</div>
+		<br>
+		<div class="centerelement" id="track">
+		<label >Track: 
+			<select id="trackSelect" >
+				<option value="media/music.mp3">Ice Cap Zone</option>
+				<option value="media/music2.mp3">Chemical Plant Zone</option>
+				<option value="media/music3.mp3">Dog Song</option>
+			</select>
+		</label></div>
+		<div class="notused">
+			<label for="slider1">Circle Radius Slider</label>
+			<input id="slider1" type ="range" min ="0" max="400" step ="10" value ="100"/>
+			<span style="float:right" id="sliderResults">???</span>
+		</div>
+		<div class="notused">
+			<label for="slider2">Dimness Slider</label>
+			<input id="slider2" type ="range" min ="0.1" max="1" step ="0.05" value ="1"/>
+			<span style="float:right" id="slider2Results">???</span>
+		</div>
+		<div class="notused">
+			<label for="delaySlider">Delay/Reverb (pls no)</label>
+			<input id="delaySlider" type ="range" min ="0.0" max="1.0" step ="0.1" value ="0"/>
+			<span id="delaysliderResults"></span>
+		</div>
+		<br>
+		<div class="centerelement" id="fs">
+		<button id="fsButton">Go Full Screen</button><br>
+		</div>
+		<div class="notused">
+			<span>
+				<label for="myCheckbox">Tint Red</label>
+				<input type="checkbox" id="redBox">
+			</span>
+		</div>
+		<div class="notused">
+			<span>
+				<label for="myCheckbox">Invert</label>
+				<input type="checkbox" id="invertBox">
+			</span>
+		</div>
+		<div class="notused">
+			<span>
+				<label for="myCheckbox">Noise</label>
+				<input type="checkbox" id="noiseBox">
+			</span>
+		</div>
+		<div class="notused">
+			<span>
+				<label for="myCheckbox">Lines</label>
+				<input type="checkbox" id="lineBox">
+			</span>
+		</div>
+		<p id="status">???</p>
+	</div>
+</body>
+</html>
