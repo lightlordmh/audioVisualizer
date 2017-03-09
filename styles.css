@@ -1,0 +1,48 @@
+body {
+    background: #000000;
+    font-family: tahoma, verdana, sans serif;
+}
+
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    margin-top:100px;
+    box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+    background: black;
+}
+    
+#controls{
+    width: 93%;
+    position: absolute;
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;	
+}
+label {
+    color: white;
+}
+.notused{
+    display: none;
+}
+h1 {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    color: white;
+    text-align: center;
+    font-size: 300%;
+}
+.centerelement{
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#track{
+    padding-left: 100px;
+}
+#fs{
+    padding-left: 210px;
+}
