@@ -33,10 +33,10 @@
 		var leftpupilctrlx1;
 		var leftpupilctrly;
 		var leftpupilctrlx2;
-        var eyeLidsOpen = false;
-        var eyelidsMoveRight = true;
-        var eyelidsMoveLeft = true;
-        var ctrlXa,ctrlX,ctrlYa,ctrlY,vector = {}, vectorA = {},speed = 1.0, midPoint1 = {};
+        var eyeLidsOpen;
+        var eyelidsMoveRight;
+        var eyelidsMoveLeft;
+        var ctrlXa,ctrlX,ctrlYa,ctrlY,vector = {}, vectorA = {},speed = 2.0, midPoint1 = {};
         var ctrlX2a,ctrlX2,ctrlY2a,ctrlY2,vector2 = {}, midPoint2 = {},vector2A = {};
 		
 		function init(){
@@ -50,6 +50,9 @@
 			audioElement.crossOrigin = "anonymous";
 			// call our helper function and get an analyser node
 			analyserNode = createWebAudioContextWithAnalyserNode(audioElement);
+			eyeLidsOpen = false;
+			eyelidsMoveLeft = false;
+			eyelidsMoveRight = false;
 			// get sound track <select> and Full Screen button working
 			setupUI();
 			
@@ -81,8 +84,8 @@
             ctrlY2 = midPoint2.y; 
             vector.x = 83 / Math.sqrt(83*83 + 174*174);
             vector.y = 174 / Math.sqrt(83*83 + 174*174); 
-            vector2.x = -79 / Math.sqrt(79*79 + 174*174);
-            vector2.y = 174 / Math.sqrt(79*79 + 174*174);
+            vector2.x = 79 / Math.sqrt(79*79 + 174*174);
+            vector2.y = -174 / Math.sqrt(79*79 + 174*174);
             vectorA.x = vector.x;
             vectorA.y = vector.y;
             vector2A.x = vector2.x;
@@ -136,25 +139,24 @@
 				requestFullscreen(canvas);
 			};
             audioElement.onplay = function(){
+				eyeLidsOpen = true;
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
             };
             audioElement.onplaying = function(){
+				eyeLidsOpen = true;
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
             };
             audioElement.onpause = function(){
+				eyeLidsOpen = false;
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
             };
-            audioElement.onplaying = function(){
-                eyelidsMoveRight = true;
-                eyelidsMoveLeft = true;
-            };
-            audioElement.onended = function(){
-                eyelidsMoveRight = true;
-                eyelidsMoveLeft = true;                
-            }
+            // audioElement.onended = function(){
+            //     eyelidsMoveRight = true;
+            //     eyelidsMoveLeft = true;                
+            // };
 
 
 			//  document.querySelector("#delaySlider").onchange = function(e){
@@ -325,76 +327,81 @@
             var controlY2 = ctrlY2;
             var controlX2a = ctrlX2a;
             var controlY2a = ctrlY2a;
-            if(eyelidsMoveRight == true && eyelidsMoveLeft == true){
-                controlX += speed * vector.x;
-                controlY += speed * vector.y; 
-                controlXa += speed * vectorA.x;
-                controlYa += speed * vectorA.y; 
-                controlX2 += speed * vector2.x;
-                controlY2 += speed * vector2.y; 
-                controlX2a += speed * vector2A.x;
-                controlY2a += speed * vector2A.y; 
-            }
+
 
             //Right Eyelids
-            if(controlY >= 252.0  ){
+            if(controlY > 252.0 ){
                 vector.x *= -1;
                 vector.y *= -1;
-                controlX += speed * vector.x;
-                controlY += speed * vector.y;
+				controlX += (speed + 1)* vector.x;
+                controlY += (speed + 1)* vector.y ;
                 eyelidsMoveRight = false;
             }
-            else if(controlY <= midPoint1.y  ){
+            else if(controlY < midPoint1.y ){
                 vector.x *= -1;
                 vector.y *= -1;
-                controlX += speed * vector.x;
-                controlY += speed * vector.y;
+                controlX += (speed + 1)* vector.x;
+                controlY += (speed + 1)* vector.y;
                 eyelidsMoveRight = false;
             }
-            if(controlYa <= 78.0 ){
+            if(controlYa < 78.0  ){
                 vectorA.x *= -1;
                 vectorA.y *= -1;
-                controlXa += speed * vectorA.x;
-                controlYa += speed * vectorA.y;
+                controlXa += (speed + 1)* vectorA.x;
+                controlYa += (speed + 1)* vectorA.y;
                 eyelidsMoveRight = false;
             }
-            else if(controlYa >= midPoint1.y  ){
+             else if(controlYa > midPoint1.y ){
                 vectorA.x *= -1;
                 vectorA.y *= -1;
-                controlXa += speed * vectorA.x;
-                controlYa += speed * vectorA.y;
+                controlXa += (speed + 1)* vectorA.x;
+                controlYa += (speed + 1)* vectorA.y;
                 eyelidsMoveRight = false;
             }
 
             //Left Eyelids
-            if(controlY2 >= 253.0  ){
+            if(controlY2 > 253.0 ){
                 vector2.x *= -1;
                 vector2.y *= -1;
-                controlX2 += speed * vector2.x;
-                controlY2 += speed * vector2.y;
+                controlX2 += (speed + 10)* vector2.x;
+                controlY2 += (speed + 10)* vector2.y;
                 eyelidsMoveLeft = false;
             }
-            else if(controlY2 <= midPoint2.y ){
+        	else if(controlY2 < midPoint2.y ){
                 vector2.x *= -1;
                 vector2.y *= -1;
-                controlX2 += speed * vector2.x;
-                controlY2 += speed * vector2.y;
+                controlX2 += (speed + 10)* vector2.x;
+                controlY2 += (speed + 10)* vector2.y;
                 eyelidsMoveLeft = false;
             }
-            if(controlY2a <= 79.0 ){
+            if(controlY2a < 79.0 ){
                 vector2A.x *= -1;
                 vector2A.y *= -1;
-                controlX2a += speed * vector2A.x;
-                controlY2a += speed * vector2A.y;
+                controlX2a += (speed + 10)* vector2A.x;
+                controlY2a += (speed + 10)* vector2A.y;
                 eyelidsMoveLeft = false;
             }
-            else if(controlY2a >= midPoint2.y  ){
+            else if(controlY2a > midPoint2.y ){
                 vector2A.x *= -1;
                 vector2A.y *= -1;
-                controlX2a += speed * vector2A.x;
-                controlY2a += speed * vector2A.y;
+                controlX2a += (speed + 10) * vector2A.x;
+                controlY2a += (speed + 10) * vector2A.y;
                 eyelidsMoveLeft = false;
             }
+
+
+			if(eyelidsMoveRight == true){
+                controlX += speed * vector.x;
+                controlY += speed * vector.y; 
+                controlXa += speed * vectorA.x;
+                controlYa += speed * vectorA.y; 
+            }
+			if(eyelidsMoveLeft == true){
+				controlX2 += speed * vector2.x;
+                controlY2 += speed * vector2.y; 
+                controlX2a += speed * vector2A.x;
+                controlY2a += speed * vector2A.y; 
+			}
             //right eyelids
             ctrlX = controlX;
             ctrlY = controlY;
