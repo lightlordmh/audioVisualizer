@@ -144,22 +144,25 @@
 			document.querySelector("#fsButton").onclick = function(){
 				requestFullscreen(canvas);
 			};
-            /*audioElement.onplay = function(){
-				eyeLidsOpen = true;
-                eyelidsMoveRight = true;
-                eyelidsMoveLeft = true;
-				console.log("onplay");
-            };*/
-            audioElement.onplaying = function(){
+			audioElement.onplay = function(){
 				if (firstsong == true){
-					firstsong = false;
+				firstsong = false;
+				eyeLidsOpen = true;
+				eyelidsMoveRight = true;
+				eyelidsMoveLeft = true;
+				}
+				console.log("onplay");
+			};
+            /*audioElement.onplaying = function(){
+			if (firstsong == true){
 					eyeLidsOpen = true;
 					eyelidsMoveRight = true;
 					eyelidsMoveLeft = true;
 				}
 				console.log("onplaying");
-            };
+            };*/
             audioElement.onpause = function(){
+				firstsong = true;
 				eyeLidsOpen = false;
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
