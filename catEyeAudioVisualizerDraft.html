@@ -36,6 +36,7 @@
         var eyeLidsOpen;
         var eyelidsMoveRight;
         var eyelidsMoveLeft;
+		var firstsong;
         var ctrlXa,ctrlX,ctrlYa,ctrlY,vector = {}, vectorA = {},speed = 2.0, midPoint1 = {};
         var ctrlX2a,ctrlX2,ctrlY2a,ctrlY2,vector2 = {}, midPoint2 = {},vector2A = {};
 		
@@ -44,6 +45,7 @@
 			canvas = document.querySelector('canvas');
 			ctx = canvas.getContext("2d");
 			delayAmount = 0;
+			firstsong = true;
 			
 			// get reference to <audio> element on page
 			audioElement = document.querySelector('audio');
@@ -149,9 +151,12 @@
 				console.log("onplay");
             };*/
             audioElement.onplaying = function(){
-				eyeLidsOpen = true;
-                eyelidsMoveRight = true;
-                eyelidsMoveLeft = true;
+				if (firstsong == true){
+					firstsong = false;
+					eyeLidsOpen = true;
+					eyelidsMoveRight = true;
+					eyelidsMoveLeft = true;
+				}
 				console.log("onplaying");
             };
             audioElement.onpause = function(){
@@ -159,11 +164,6 @@
                 eyelidsMoveRight = true;
                 eyelidsMoveLeft = true;
 				console.log("onpause");
-            };
-            audioElement.onended = function(){
-                eyelidsMoveRight = true;
-                eyelidsMoveLeft = true; 
-				console.log("onended");
             };
             // audioElement.onended = function(){
             //     eyelidsMoveRight = true;
